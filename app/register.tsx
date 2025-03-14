@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
@@ -10,10 +10,63 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [cpf, setCpf] = useState('');
   
   const [fontsLoaded] = useFonts({
     PressStart2P_400Regular,
   });
+
+  const isValidCPF = (cpf: string) => {
+    cpf = cpf.replace(/[^\d]/g, '');
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += parseInt(cpf.charAt(i)) * (10 - i);
+    let result = (sum * 10) % 11;
+    if (result === 10 || result === 11) result = 0;
+    if (result !== parseInt(cpf.charAt(9))) return false;
+    sum = 0;
+    for (let i = 0; i < 10; i++) sum += parseInt(cpf.charAt(i)) * (11 - i);
+    result = (sum * 10) % 11;
+    if (result === 10 || result === 11) result = 0;
+    return result === parseInt(cpf.charAt(10));
+  };
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    return emailRegex.test(email);
+  };
+
+  const handleRegister = () => {
+    if (name.trim().length < 2) {
+      Alert.alert('Nome inválido', 'O nome deve ter no mínimo 2 caracteres.');
+      return;
+    }
+    if (!email.trim()) {
+      Alert.alert('Email obrigatório', 'Por favor, insira um email.');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      Alert.alert('Email inválido', 'Por favor, insira um email válido.');
+      return;
+    }
+    if (!cpf.trim()) {
+      Alert.alert('CPF obrigatório', 'Por favor, insira um CPF.');
+      return;
+    }
+    if (!isValidCPF(cpf)) {
+      Alert.alert('CPF inválido', 'Por favor, insira um CPF válido.');
+      return;
+    }
+    if (!password.trim()) {
+      Alert.alert('Senha obrigatória', 'Por favor, insira uma senha.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Senhas não conferem', 'As senhas devem ser iguais.');
+      return;
+    }
+    router.replace('/login');
+  };
 
   if (!fontsLoaded) {
     return null;
@@ -80,7 +133,19 @@ export default function Register() {
             />
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={() => router.replace('/login')}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>CPF</Text>
+            <TextInput
+              style={styles.input}
+              value={cpf}
+              onChangeText={setCpf}
+              placeholder="Digite seu CPF"
+              placeholderTextColor="#666"
+              keyboardType="numeric"
+            />
+          </View>
+
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
             <Text style={styles.buttonText}>REGISTRAR</Text>
           </TouchableOpacity>
 
