@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Divider, Menu, PaperProvider } from 'react-native-paper';
+import { PaperProvider } from 'react-native-paper';
 import { Text, TouchableOpacity } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
@@ -15,6 +15,9 @@ import MenuHeader from '@/components/MenuHeader';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const [visible, setVisible] = useState(false);
+<TouchableOpacity onPress={() => alert('Botão clicado!')} style={{ marginRight: 15 }}>
+  <MaterialCommunityIcons name="dots-vertical" size={24} color="#FFF" />
+</TouchableOpacity>
 
   return (
     <PaperProvider>

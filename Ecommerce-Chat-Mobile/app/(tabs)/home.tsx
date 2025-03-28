@@ -5,6 +5,8 @@ import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-star
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import MenuHeader from '@/components/MenuHeader';
+
 // Tipo para os produtos (jogos)
 type Product = {
   name: string;
@@ -207,10 +209,14 @@ const Home: React.FC = () => {
       <StatusBar barStyle="light-content" backgroundColor="#000033" />
       <View style={styles.headerContainer}>
         <Text style={styles.header}>Jogos</Text>
-        <TouchableOpacity style={styles.cartIconButton} onPress={handleNavigateToCart}>
-          <Text style={styles.cartIcon}>🛒</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity style={styles.cartIconButton} onPress={handleNavigateToCart}>
+            <Text style={styles.cartIcon}>🛒</Text>
+          </TouchableOpacity>
+          <MenuHeader />
+        </View>
       </View>
+
       <FlatList
         key={getColumns()}
         data={products}

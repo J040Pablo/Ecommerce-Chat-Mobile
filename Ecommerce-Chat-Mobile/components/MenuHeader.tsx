@@ -1,25 +1,29 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
+import React, { useState } from 'react'
+import { Text, TouchableOpacity } from 'react-native'
+import { Divider, Menu } from 'react-native-paper'
 
 const MenuHeader = () => {
+    const [visible, setVisible] = useState(false)
+    const router = useRouter()
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Menu Header</Text>
-    </View>
-  );
-};
+    <Menu
+        visible={visible} // Controla a visibilidade do menu
+        onDismiss={() => setVisible(false)} // Fecha o menu ao clicar fora
+        anchor={
+        <TouchableOpacity onPress={() => setVisible(true)} style={{ marginRight: 15 }}>
+            <MaterialCommunityIcons name="dots-vertical" size={24} color="#FFF" />
+        </TouchableOpacity>
+        }
+    >
+    <Menu.Item title={<Text>Perfil</Text>} />
+    <Menu.Item title={<Text>Configurações</Text>}/>
+    <Menu.Item title={<Text>Conversar com a IA</Text>}/>
+    <Divider />
+    <Menu.Item onPress={() => router.replace('/login')} title={<Text>Logout</Text>} />
+</Menu>
+  )
+}
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 10,
-    backgroundColor: '#0EDFBD',
-    alignItems: 'center',
-  },
-  text: {
-    fontSize: 18,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-});
-
-export default MenuHeader; 
+export default MenuHeader
