@@ -3,14 +3,17 @@ import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import { useState } from 'react';
+import httpService from '../app/services/httpService';
+import { replace } from 'expo-router/build/global-state/routing';
 
 export default function Register() {
+  const SERVER_URL = 'http://192.168.1.71:3000'; // IPCONFiG
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [cpf, setCpf] = useState('');
   
   const [fontsLoaded] = useFonts({
     PressStart2P_400Regular,
@@ -36,7 +39,7 @@ export default function Register() {
     return emailRegex.test(email);
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (name.trim().length < 2) {
       Alert.alert('Nome inválido', 'O nome deve ter no mínimo 2 caracteres.');
       return;
@@ -65,7 +68,23 @@ export default function Register() {
       Alert.alert('Senhas não conferem', 'As senhas devem ser iguais.');
       return;
     }
-    router.replace('/login');
+
+    // Envio do formulário
+    const json = {
+      name,
+      email,
+      password,
+    };
+
+    try {
+      const registerProductUrl = `${SERVER_URL}/api/user`;
+      await httpService.post(registerProductUrl, json);
+      Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
+      router.replace('/login');
+    } catch (error) {
+      console.error('Erro ao registrar:', error);
+      Alert.alert('Erro', 'Não foi possível realizar o cadastro. Tente novamente.');
+    }
   };
 
   if (!fontsLoaded) {
@@ -90,7 +109,7 @@ export default function Register() {
             <TextInput
               style={styles.input}
               value={name}
-              onChangeText={setName}
+              onChangeText={(text) => setName(text)}
               placeholder="Digite seu nome"
               placeholderTextColor="#666"
             />
@@ -101,7 +120,7 @@ export default function Register() {
             <TextInput
               style={styles.input}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => setEmail(text)}
               placeholder="Digite seu email"
               placeholderTextColor="#666"
               autoCapitalize="none"
@@ -114,7 +133,7 @@ export default function Register() {
             <TextInput
               style={styles.input}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => setPassword(text)}
               placeholder="Digite sua senha"
               placeholderTextColor="#666"
               secureTextEntry
@@ -126,7 +145,7 @@ export default function Register() {
             <TextInput
               style={styles.input}
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChangeText={(text) => setConfirmPassword(text)}
               placeholder="Confirme sua senha"
               placeholderTextColor="#666"
               secureTextEntry
@@ -138,7 +157,7 @@ export default function Register() {
             <TextInput
               style={styles.input}
               value={cpf}
-              onChangeText={setCpf}
+              onChangeText={(text) => setCpf(text)}
               placeholder="Digite seu CPF"
               placeholderTextColor="#666"
               keyboardType="numeric"
