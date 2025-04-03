@@ -2,25 +2,27 @@ import React, { Fragment, useState } from 'react';
 import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 
 class Message {
-  text: string
-  sentBy: string
+  text: string;
+  sentBy: string;
 
   constructor(text: string, sentBy: string) {
     this.text = text;
     this.sentBy = sentBy;
   }
-};
+}
 
-const chat = () => {
-  const [userLogged, setUserLogged] = useState<string>('user1'); // useState({})
+const Chat = () => {
+  const { userLogged } = useLocalSearchParams(); // Recebe o parâmetro da navegação
+  const userLoggedString = Array.isArray(userLogged) ? userLogged[0] : userLogged || 'Anônimo'; // Garante que seja uma string
   const [chatState, setChat] = useState<{ messages: Message[] }>({ messages: [] });
   const [message, setMessage] = useState('');
 
   const sendMessage = () => {
     if (message.trim().length > 0) {
-      const newMessage = { text: message, sentBy: userLogged };
+      const newMessage = new Message(message, userLoggedString); // Usa a classe Message
       setChat((prevState) => ({
         messages: [...prevState.messages, newMessage],
       }));
@@ -34,7 +36,7 @@ const chat = () => {
         <FlatList
           contentContainerStyle={styles.scrollViewContainer}
           data={chatState.messages}
-          renderItem={({ item }) => <Ballon message={item} currentUser={userLogged} />}
+          renderItem={({ item }) => <Ballon message={item} currentUser={userLoggedString} />}
           keyExtractor={(item, index) => index.toString()}
           ListEmptyComponent={() => (
             <Text style={styles.noMessagesText}>Nenhuma mensagem ainda</Text>
@@ -51,7 +53,7 @@ const chat = () => {
             onChangeText={(text) => setMessage(text)}
           />
           <TouchableOpacity
-          onPress={() => sendMessage()}
+            onPress={() => sendMessage()}
             style={[styles.button, !message.trim() && styles.disabledButton]}
             disabled={!message.trim()}
           >
@@ -73,8 +75,7 @@ const Ballon = ({ message, currentUser }: { message: Message; currentUser: strin
     <View style={{ marginBottom: '2%' }}>
       <View style={[styles.bubbleWrapper, bubbleWrapper]}>
         <View style={[styles.ballon, ballonColor]}>
-          <Text style={[styles.ballonText, ballonTextColor]}>
-            {message.text}</Text>
+          <Text style={[styles.ballonText, ballonTextColor]}>{message.text}</Text>
         </View>
       </View>
     </View>
@@ -170,4 +171,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default chat;
+export default Chat;
