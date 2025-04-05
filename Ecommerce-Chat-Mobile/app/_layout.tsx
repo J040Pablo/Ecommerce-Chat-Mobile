@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Touchable, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -18,31 +18,37 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
   if (!loaded) {
-    return null;
+    return null; // Certifique-se de que isso não altera a ordem dos hooks
   }
 
-  const router = useRouter();
-  
   return (
-     //<ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-     <Stack>
-     <Stack.Screen name="welcome" options={{ headerShown: false }}/>
-     <Stack.Screen name="login" options={{ headerShown: false }}/>
-     <Stack.Screen name="register" options={{ headerShown: false }}/>
-     <Stack.Screen name="changeName" options={{ headerShown: false }}/>
-     <Stack.Screen name="chat" options={{
-      title: 'Artificial Inteligence Chat',
-      headerTitleAlign: 'center',
-      headerLeft: () => {
-        return <TouchableOpacity onPress={() => router.replace('/(tabs)/home')}>
-        <Ionicons name='arrow-back' color='white' size={28}></Ionicons>
-        </TouchableOpacity>}
-
-      }} />
-     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-   </Stack>
-   //<StatusBar style="auto" />
- //</ThemeProvider>
+    <Stack>
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="register" options={{ headerShown: false }} />
+      <Stack.Screen name="changeName" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="chat"
+        options={{
+          title: 'Artificial Intelligence Chat',
+          headerTitleAlign: 'center',
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.replace('/(tabs)/home')}>
+              <Ionicons name="arrow-back" color="white" size={28} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
   );
 }

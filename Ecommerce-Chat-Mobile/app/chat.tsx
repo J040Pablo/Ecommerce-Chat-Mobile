@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,18 +15,34 @@ class Message {
 }
 
 const Chat = () => {
-  const { userLogged } = useLocalSearchParams(); // Recebe o parâmetro da navegação
-  const userLoggedString = Array.isArray(userLogged) ? userLogged[0] : userLogged || 'Anônimo'; // Garante que seja uma string
+  const { userLogged } = useLocalSearchParams(); // Obtém o parâmetro da navegação
+  const userLoggedString = Array.isArray(userLogged) ? userLogged[0] : userLogged || 'Anônimo'; // Garante que seja string
   const [chatState, setChat] = useState<{ messages: Message[] }>({ messages: [] });
   const [message, setMessage] = useState('');
+  const ws = new WebSocket('ws://192.168.1.71:3000'); // WebSocket
 
-  const sendMessage = () => {
-    if (message.trim().length > 0) {
-      const newMessage = new Message(message, userLoggedString); // Usa a classe Message
+  useEffect(() => {
+    ws.onopen = () => {
+      console.log('Conexão com o servidor WebSocket estabelecida!');
+    };
+
+    ws.onmessage = ({ data }) => {
+      const newMessage = JSON.parse(data);
       setChat((prevState) => ({
         messages: [...prevState.messages, newMessage],
       }));
-      setMessage('');
+    };
+
+    return () => {
+      ws.close(); // Fecha o WebSocket ao desmontar o componente
+    };
+  }, []);
+
+  const sendMessage = () => {
+    if (message.trim().length > 0) {
+      const newMessage = new Message(message, userLoggedString);
+      ws.send(JSON.stringify(newMessage)); // Envia a mensagem para o servidor WebSocket
+      setMessage(''); // Limpa o campo de entrada
     }
   };
 
@@ -53,7 +69,7 @@ const Chat = () => {
             onChangeText={(text) => setMessage(text)}
           />
           <TouchableOpacity
-            onPress={() => sendMessage()}
+            onPress={sendMessage}
             style={[styles.button, !message.trim() && styles.disabledButton]}
             disabled={!message.trim()}
           >
@@ -66,7 +82,7 @@ const Chat = () => {
 };
 
 const Ballon = ({ message, currentUser }: { message: Message; currentUser: string }) => {
-  const sent = currentUser === message.sentBy;
+  const sent = currentUser === message.sentBy; // Verifica se a mensagem foi enviada pelo usuário atual
   const ballonColor = sent ? styles.ballonSent : styles.ballonReceived;
   const ballonTextColor = sent ? styles.ballonTextSent : styles.ballonTextReceived;
   const bubbleWrapper = sent ? styles.bubbleWrapperSent : styles.bubbleWrapperReceived;
@@ -74,7 +90,12 @@ const Ballon = ({ message, currentUser }: { message: Message; currentUser: strin
   return (
     <View style={{ marginBottom: '2%' }}>
       <View style={[styles.bubbleWrapper, bubbleWrapper]}>
+        {/* Nome do remetente */}
+        <Text style={[styles.senderName, sent ? styles.senderNameSent : styles.senderNameReceived]}>
+          {message.sentBy}
+        </Text>
         <View style={[styles.ballon, ballonColor]}>
+          {/* Texto da mensagem */}
           <Text style={[styles.ballonText, ballonTextColor]}>{message.text}</Text>
         </View>
       </View>
@@ -168,6 +189,19 @@ const styles = StyleSheet.create({
   },
   ballonTextReceived: {
     color: '#FFD700', // Dourado para manter a estética
+  },
+  senderName: {
+    fontSize: 12,
+    fontFamily: 'PressStart2P_400Regular', // Fonte estilo retrô
+    marginBottom: 5,
+  },
+  senderNameSent: {
+    color: '#FFF', // Branco para mensagens enviadas
+    textAlign: 'right', // Alinha à direita para mensagens enviadas
+  },
+  senderNameReceived: {
+    color: '#FFD700', // Dourado para mensagens recebidas
+    textAlign: 'left', // Alinha à esquerda para mensagens recebidas
   },
 });
 
