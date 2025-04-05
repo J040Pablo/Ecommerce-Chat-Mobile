@@ -1,4 +1,5 @@
 import User from '../models/UserModel.js';
+import aiService from '../services/IaService.js';
 const UserController = {
     createUser: async (req, res) => {
         try {
@@ -33,6 +34,10 @@ const UserController = {
             res.status(500).json({ error: error.message });
         }
     },
+    promptWithGemini: async (req, res) => {
+        const result = await aiService.prompt(req.body.prompt)
+        res.status(200).json(result.text())
+    }
 };
 
 export default UserController;

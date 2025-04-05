@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState } from 'react';
-import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
@@ -14,23 +14,28 @@ class Message {
   }
 }
 
+let ws: WebSocket;
 const Chat = () => {
   const { userLogged } = useLocalSearchParams(); // Obtém o parâmetro da navegação
   const userLoggedString = Array.isArray(userLogged) ? userLogged[0] : userLogged || 'Anônimo'; // Garante que seja string
   const [chatState, setChat] = useState<{ messages: Message[] }>({ messages: [] });
   const [message, setMessage] = useState('');
-  const ws = new WebSocket('ws://192.168.1.71:3000'); // WebSocket
 
   useEffect(() => {
+    ws = new WebSocket('ws://192.168.1.71:3000'); // WebSocket
     ws.onopen = () => {
       console.log('Conexão com o servidor WebSocket estabelecida!');
     };
 
     ws.onmessage = ({ data }) => {
-      const newMessage = JSON.parse(data);
-      setChat((prevState) => ({
-        messages: [...prevState.messages, newMessage],
-      }));
+      try {
+        const newMessage = JSON.parse(data);
+        setChat((prevState) => ({
+          messages: [...prevState.messages, newMessage],
+        }));
+      } catch (error) {
+        console.error('Erro ao processar a mensagem recebida:', error);
+      }
     };
 
     return () => {
@@ -60,7 +65,11 @@ const Chat = () => {
         />
       </View>
       <SafeAreaView>
-        <View style={styles.messageTextInputContainer}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+          style={styles.messageTextInputContainer}
+        >
           <TextInput
             style={styles.messageTextInput}
             placeholder="Digite sua mensagem..."
@@ -75,7 +84,7 @@ const Chat = () => {
           >
             <Ionicons name="send" size={24} color="white" />
           </TouchableOpacity>
-        </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Fragment>
   );
@@ -149,7 +158,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#bdc3c7',
     borderColor: '#7f8c8d', // Fundo do botão desabilitado
   },
-  // =========================== Ballon Css ==========================
   bubbleWrapper: {
     flexDirection: 'column',
   },
