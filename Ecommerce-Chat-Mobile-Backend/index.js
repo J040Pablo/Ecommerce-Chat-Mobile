@@ -17,7 +17,6 @@ const clients = new Set();
 
 ws.on('connection', (client) => {
     clients.add(client);
-  
     client.on('message', (message) => {
       try {
         const msg = JSON.parse(message.toString()); // Garante que a mensagem recebida seja um JSON válido
@@ -26,7 +25,7 @@ ws.on('connection', (client) => {
         // Formata a mensagem corretamente antes de enviar para os outros clientes
         const formattedMessage = {
           text: msg.text, // O texto enviado pelo cliente
-          sentBy: msg.sentBy || 'Usuário', // O remetente enviado pelo cliente ou "Usuário" como padrão
+          sentBy: msg.sentBy || 'Gemini', // O remetente enviado pelo cliente ou "Usuário" como padrão
         };
   
         for (let c of clients) {

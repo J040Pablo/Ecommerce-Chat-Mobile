@@ -1,5 +1,12 @@
+import { fileURLToPath } from 'url'; // Adicione esta linha
 import User from '../models/UserModel.js';
 import aiService from '../services/IaService.js';
+import path from 'path';
+
+// Obtenha o diretório atual do arquivo
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const UserController = {
     createUser: async (req, res) => {
         try {
@@ -37,7 +44,16 @@ const UserController = {
     promptWithGemini: async (req, res) => {
         const result = await aiService.prompt(req.body.prompt)
         res.status(200).json(result.text())
-    }
+    },
+    longContext: async (req, res) => {
+        // Use um caminho absoluto para o arquivo PDF
+        const pdfPath = path.resolve(__dirname, '../context/CV_English.pdf');
+        try {
+            const result = await aiService.longContext(req.body.prompt, pdfPath);
+            res.status(200).json(result.text());
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    },
 };
-
 export default UserController;

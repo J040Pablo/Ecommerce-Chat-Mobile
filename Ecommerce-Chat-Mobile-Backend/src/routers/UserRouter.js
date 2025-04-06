@@ -9,6 +9,9 @@ router.route('/user')
     router.route('/ia')
     .post((req, res) => UserController.promptWithGemini(req, res));
 
+    router.route('/longContext')
+    .post((req, res) => UserController.longContext(req, res));
+
 router.route('/user/:id')
     .get((req, res) => UserController.getUser(req, res))
     .delete((req, res) => UserController.deleteUser(req, res))

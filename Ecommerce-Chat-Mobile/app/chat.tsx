@@ -22,7 +22,7 @@ const Chat = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    ws = new WebSocket('ws://192.168.1.71:3000'); // WebSocket
+    ws = new WebSocket('ws://192.168.1.71:3000'); // IPCONFIG
     ws.onopen = () => {
       console.log('Conexão com o servidor WebSocket estabelecida!');
     };
@@ -30,9 +30,18 @@ const Chat = () => {
     ws.onmessage = ({ data }) => {
       try {
         const newMessage = JSON.parse(data);
-        setChat((prevState) => ({
-          messages: [...prevState.messages, newMessage],
-        }));
+
+        // Verifica se a mensagem já está no estado para evitar duplicação
+        setChat((prevState) => {
+          const isDuplicate = prevState.messages.some(
+            (message) => message.text === newMessage.text && message.sentBy === newMessage.sentBy
+          );
+          if (isDuplicate) return prevState;
+
+          return {
+            messages: [...prevState.messages, newMessage],
+          };
+        });
       } catch (error) {
         console.error('Erro ao processar a mensagem recebida:', error);
       }
@@ -44,10 +53,15 @@ const Chat = () => {
   }, []);
 
   const sendMessage = () => {
-    if (message.trim().length > 0) {
-      const newMessage = new Message(message, userLoggedString);
-      ws.send(JSON.stringify(newMessage)); // Envia a mensagem para o servidor WebSocket
-      setMessage(''); // Limpa o campo de entrada
+    if (message.trim()) {
+      const jsonMessage = { text: message, sentBy: userLoggedString };
+      const jsonString = JSON.stringify(jsonMessage);
+
+      // Envia a mensagem para o servidor WebSocket
+      ws.send(jsonString);
+
+      // Limpa o campo de entrada
+      setMessage('');
     }
   };
 
