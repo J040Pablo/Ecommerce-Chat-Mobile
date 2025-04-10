@@ -280,6 +280,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    justifyContent: 'space-between', // Garante que o rodapé fique na parte inferior
   },
   cardImage: {
     width: '100%',
@@ -290,6 +291,7 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     padding: 10,
+    flex: 1, // Permite que o conteúdo ocupe o espaço disponível
   },
   cardTitle: {
     fontFamily: 'PressStart2P_400Regular',

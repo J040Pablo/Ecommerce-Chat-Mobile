@@ -3,6 +3,7 @@ import { FlatList, Text, TextInput, TouchableOpacity, View, StyleSheet, Keyboard
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
+import axios from 'axios';
 
 class Message {
   text: string;
@@ -52,13 +53,25 @@ const Chat = () => {
     };
   }, []);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (message.trim()) {
       const jsonMessage = { text: message, sentBy: userLoggedString };
       const jsonString = JSON.stringify(jsonMessage);
 
+      // Adiciona a mensagem ao estado local
+      setChat((prevState) => ({
+        messages: [...prevState.messages, new Message(message, userLoggedString)],
+      }));
+
       // Envia a mensagem para o servidor WebSocket
       ws.send(jsonString);
+
+      // Salva a mensagem no banco de dados
+      try {
+        await axios.post('http://192.168.1.71:3000/api/messages', jsonMessage);
+      } catch (error) {
+        console.error('Erro ao salvar mensagem no banco de dados:', error);
+      }
 
       // Limpa o campo de entrada
       setMessage('');
