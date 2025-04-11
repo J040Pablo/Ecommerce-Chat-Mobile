@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert, Animated } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,7 +21,9 @@ const Cart: React.FC = () => {
     PressStart2P_400Regular,
   });
 
-  const [cartState, setCartState] = React.useState<Product[]>(cart);
+  const [cartState, setCartState] = useState<Product[]>(cart);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Valor inicial da opacidade
 
   useFocusEffect(
     React.useCallback(() => {
@@ -58,7 +60,8 @@ const Cart: React.FC = () => {
   const clearCart = async () => {
     try {
       setCartState([]); // Limpa o estado do carrinho
-      console.log('Carrinho limpo no estado.');
+      await AsyncStorage.removeItem('cart'); // Remove o carrinho do AsyncStorage
+      console.log('Carrinho limpo no estado e no AsyncStorage.');
     } catch (error) {
       console.error('Erro ao limpar o carrinho:', error);
     }
@@ -82,8 +85,24 @@ const Cart: React.FC = () => {
       const result = await response.json();
 
       if (response.ok) {
-        Alert.alert('Sucesso', 'Pedido finalizado com sucesso!');
-        clearCart(); // Limpa o estado do carrinho, mas não remove a funcionalidade de adicionar novos itens
+        // Exibe a mensagem animada
+        setShowSuccessMessage(true);
+        Animated.timing(fadeAnim, {
+          toValue: 1, // Torna visível
+          duration: 500, // Duração da animação
+          useNativeDriver: true,
+        }).start(() => {
+          setTimeout(() => {
+            Animated.timing(fadeAnim, {
+              toValue: 0, // Torna invisível
+              duration: 500, // Duração da animação
+              useNativeDriver: true,
+            }).start(() => {
+              setShowSuccessMessage(false); // Oculta a mensagem
+              clearCart(); // Limpa o carrinho no estado e no AsyncStorage
+            });
+          }, 2000); // Exibe a mensagem por 2 segundos
+        });
       } else {
         Alert.alert('Erro', result.error || 'Não foi possível finalizar o pedido.');
       }
@@ -132,6 +151,13 @@ const Cart: React.FC = () => {
       <TouchableOpacity style={styles.button} onPress={finalizeOrder}>
         <Text style={styles.buttonText}>Finalizar Pedido</Text>
       </TouchableOpacity>
+
+      {/* Mensagem de sucesso animada */}
+      {showSuccessMessage && (
+        <Animated.View style={[styles.successMessageContainer, { opacity: fadeAnim }]}>
+          <Text style={styles.successMessageText}>Compra finalizada com sucesso!</Text>
+        </Animated.View>
+      )}
     </View>
   );
 };
@@ -230,6 +256,26 @@ const styles = StyleSheet.create({
   cartItemPrice: {
     fontSize: 14,
     color: '#888',
+  },
+  successMessageContainer: {
+    position: 'absolute',
+    bottom: '50%', // Centraliza verticalmente no meio da tela
+    left: '50%', // Centraliza horizontalmente
+    right: '50%', // Centraliza horizontalmente
+    transform: [{ translateX: -150 }, { translateY: 50 }], // Ajusta a posição para ficar um pouco mais acima
+    backgroundColor: '#FF4500',
+    padding: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#FFD700',
+    width: 330, // Largura fixa para centralizar melhor
+    alignItems: 'center', // Centraliza o texto horizontalmente
+  },
+  successMessageText: {
+    fontFamily: 'PressStart2P_400Regular',
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

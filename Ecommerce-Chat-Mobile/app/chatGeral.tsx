@@ -19,14 +19,14 @@ class Message {
 let ws: WebSocket;
 
 const Chat = () => {
-  const { userLogged, chatType } = useLocalSearchParams();
-  const userLoggedString = Array.isArray(userLogged) ? userLogged[0] : userLogged || 'Anônimo';
+  const { userLogged } = useLocalSearchParams(); // Obtém o nome do usuário
+  const userLoggedString = Array.isArray(userLogged) ? userLogged[0] : userLogged || 'Anônimo'; // Define o nome padrão como "Anônimo"
   const router = useRouter(); // Hook para navegação
   const [chatState, setChat] = useState<{ messages: Message[] }>({ messages: [] });
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    ws = new WebSocket('ws://192.168.1.71:3000'); // IPCONFIG
+    ws = new WebSocket('ws://192.168.1.71:3000'); // Substitua pelo IP do seu backend
     ws.onopen = () => {
       console.log('Conexão com o servidor WebSocket estabelecida!');
     };
@@ -35,17 +35,12 @@ const Chat = () => {
       try {
         const newMessage = JSON.parse(data);
 
-        // Verifica se a mensagem já está no estado para evitar duplicação
-        setChat((prevState) => {
-          const isDuplicate = prevState.messages.some(
-            (message) => message.text === newMessage.text && message.sentBy === newMessage.sentBy
-          );
-          if (isDuplicate) return prevState;
-
-          return {
+        // Verifica se a mensagem é de um usuário e não da IA
+        if (newMessage.sentBy !== 'IA') {
+          setChat((prevState) => ({
             messages: [...prevState.messages, newMessage],
-          };
-        });
+          }));
+        }
       } catch (error) {
         console.error('Erro ao processar a mensagem recebida:', error);
       }
@@ -58,7 +53,7 @@ const Chat = () => {
 
   const sendMessage = async () => {
     if (message.trim()) {
-      const jsonMessage = { text: message, sentBy: userLoggedString };
+      const jsonMessage = { text: message, sentBy: userLoggedString }; // Usa o nome do usuário como remetente
       const jsonString = JSON.stringify(jsonMessage);
 
       // Adiciona a mensagem ao estado local
@@ -87,9 +82,9 @@ const Chat = () => {
       <View style={styles.topButtonsContainer}>
         <TouchableOpacity
           style={styles.switchButton}
-          onPress={() => router.replace({ pathname: '/chatGeral', params: { userName: userLoggedString } })}
+          onPress={() => router.replace('/chat')} // Redireciona para o Chat com IA
         >
-          <Text style={styles.switchButtonText}>Ir para Chat Geral</Text>
+          <Text style={styles.switchButtonText}>Ir para Chat com IA</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.homeButton} onPress={() => router.replace('/home')}>
           <Text style={styles.homeButtonText}>Voltar para Home</Text>

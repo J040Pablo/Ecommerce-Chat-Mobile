@@ -7,14 +7,18 @@ const ChangeName = () => {
   const [userLogged, setUserLogged] = useState(''); // Hook useState
   const router = useRouter(); // Hook useRouter
 
-  const handleNavigate = () => {
+  const handleNavigate = (chatType: 'geral' | 'ai') => {
     if (userLogged.trim().length === 0) {
       alert('Por favor, insira um nome válido.');
       return;
     }
 
-    // Navegar para a página de chat com o parâmetro userLogged
-    router.replace({ pathname: '/chat', params: { userLogged } });
+    // Navegar para a página de chat com o parâmetro userLogged e o tipo de chat
+    if (chatType === 'geral') {
+      router.replace({ pathname: '/chatGeral', params: { userName: userLogged } });
+    } else if (chatType === 'ai') {
+      router.replace({ pathname: '/chat', params: { userLogged, chatType } });
+    }
   };
 
   return (
@@ -34,8 +38,25 @@ const ChangeName = () => {
           },
         }}
       />
-      <TouchableOpacity style={styles.button} onPress={handleNavigate}>
-        <Text style={styles.buttonText}>Enviar</Text>
+      {userLogged.trim() !== '' && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => handleNavigate('geral')}
+          >
+            <Text style={styles.buttonText}>Chat Geral</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => handleNavigate('ai')}
+          >
+            <Text style={styles.buttonText}>Chat com IA</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {/* Botão para voltar à Home */}
+      <TouchableOpacity style={styles.homeButton} onPress={() => router.replace('/home')}>
+        <Text style={styles.homeButtonText}>Voltar para Home</Text>
       </TouchableOpacity>
     </View>
   );
@@ -62,6 +83,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
   button: {
     backgroundColor: '#FF4500', // Laranja vibrante
     padding: 15,
@@ -69,7 +95,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFD700', // Borda dourada
     alignItems: 'center',
-    width: '60%',
+    width: '40%',
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.8,
@@ -78,10 +104,22 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: 'PressStart2P_400Regular', // Fonte estilo retrô
     color: '#FFD700', // Texto dourado
-    fontSize: 16,
-    textShadowColor: '#FF4500',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 1,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  homeButton: {
+    backgroundColor: '#FF4500',
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FFD700',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  homeButtonText: {
+    fontFamily: 'PressStart2P_400Regular',
+    color: '#FFF',
+    fontSize: 12,
   },
 });
 
