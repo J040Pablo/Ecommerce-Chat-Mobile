@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,7 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 type Product = {
   name: string;
   description: string;
-  price: string;
+  price: number; // Alterado para number
   image: string;
 };
 
@@ -29,8 +29,12 @@ const Cart: React.FC = () => {
         try {
           const cartData = await AsyncStorage.getItem('cart');
           if (cartData) {
-            setCartState(JSON.parse(cartData));
-            console.log('Carrinho carregado do AsyncStorage ao focar:', JSON.parse(cartData));
+            const parsedCart = JSON.parse(cartData).map((item: Product) => ({
+              ...item,
+              price: Number(item.price), // Garante que o preço seja um número
+            }));
+            setCartState(parsedCart);
+            console.log('Carrinho carregado do AsyncStorage ao focar:', parsedCart);
           }
         } catch (error) {
           console.error('Erro ao carregar o carrinho:', error);
@@ -65,6 +69,16 @@ const Cart: React.FC = () => {
     return null;
   }
 
+  const renderCartItem = ({ item }: { item: Product }) => (
+    <View style={styles.cartItem}>
+      <Image source={{ uri: item.image }} style={styles.cartItemImage} />
+      <View style={styles.cartItemDetails}>
+        <Text style={styles.cartItemName}>{item.name}</Text>
+        <Text style={styles.cartItemPrice}>R$ {item.price.toFixed(2)}</Text>
+      </View>
+    </View>
+  );
+
   const renderItem = ({ item, index }: { item: Product, index: number }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{item.name}</Text>
@@ -75,7 +89,7 @@ const Cart: React.FC = () => {
     </View>
   );
 
-  const total = cartState.reduce((sum, item) => sum + parseFloat(item.price.replace('R$', '')), 0);
+  const total = cartState.reduce((sum, item) => sum + item.price, 0);
 
   return (
     <View style={styles.container}>
@@ -166,6 +180,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'PressStart2P_400Regular',
   },
+  cartItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  cartItemImage: {
+    width: 50,
+    height: 50,
+    marginRight: 10,
+  },
+  cartItemDetails: {
+    flex: 1,
+  },
+  cartItemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cartItemPrice: {
+    fontSize: 14,
+    color: '#888',
+  },
 });
 
-export default Cart; 
+export default Cart;

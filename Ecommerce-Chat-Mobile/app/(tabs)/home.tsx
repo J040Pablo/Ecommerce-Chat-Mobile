@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, FlatList, Dimensions, StatusBar, Animated } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, FlatList, Dimensions, StatusBar, Animated, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import MenuHeader from '@/components/MenuHeader';
+import axios from 'axios';
 
 // Tipo para os produtos (jogos)
 type Product = {
+  _id: string;
   name: string;
   description: string;
-  price: string;
+  price: number;
   image: string;
 };
 
@@ -22,6 +24,8 @@ const Home: React.FC = () => {
     PressStart2P_400Regular,
   });
   const router = useRouter();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const notificationTranslateY = useRef(new Animated.Value(100)).current;
 
@@ -58,6 +62,21 @@ const Home: React.FC = () => {
     }
   }, [showNotification]);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://192.168.1.71:3000/api/product'); // Substitua pelo IP correto
+        setProducts(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar produtos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const notificationStyle = {
     ...styles.notificationBottom,
     transform: [{ translateY: notificationTranslateY }],
@@ -67,68 +86,14 @@ const Home: React.FC = () => {
     return null;
   }
 
-  const products: Product[] = [
-    {
-      name: "Grand Theft Auto: San Andreas",
-      description: "Um dos jogos mais icônicos do PS2, onde você joga como CJ explorando uma cidade cheia de crimes e aventuras.",
-      price: "R$30",
-      image: "https://preview.redd.it/gr84wguz7tb91.png?width=640&crop=smart&auto=webp&s=ff88f34feffe113c0faa9f96b0d2f108a02a5601",
-    },
-    {
-      name: "God of War II",
-      description: "Sequência do lendário God of War, onde Kratos enfrenta deuses e monstros da mitologia grega.",
-      price: "R$40",
-      image: "https://upload.wikimedia.org/wikipedia/pt/7/7e/God_of_War_2_capa.png",
-    },
-    {
-      name: "Shadow of the Colossus",
-      description: "Um jogo épico de aventura onde você enfrenta colossos gigantes em busca de um milagre.",
-      price: "R$50",
-      image: "https://upload.wikimedia.org/wikipedia/pt/6/66/ShadowOfTheColossusGH.jpg",
-    },
-    {
-      name: "Resident Evil 4",
-      description: "Clássico do survival horror, onde Leon S. Kennedy enfrenta zumbis em uma vila misteriosa.",
-      price: "R$35",
-      image: "https://i.pinimg.com/474x/52/2c/d9/522cd91e10f58980b35998afa556348e.jpg",
-    },
-    {
-      name: "Metal Gear Solid 3: Snake Eater",
-      description: "Jogo de espionagem tática, onde você controla Naked Snake em uma missão secreta.",
-      price: "R$45",
-      image: "https://gamefaqs.gamespot.com/a/box/4/4/9/53449_front.jpg",
-    },
-    {
-      name: "Final Fantasy X",
-      description: "Um dos RPGs mais famosos de todos os tempos, com uma história emocionante e batalhas épicas.",
-      price: "R$40",
-      image: "https://m.media-amazon.com/images/I/91rQrZ+BRHL.jpg",
-    },
-    {
-      name: "Need for Speed: Most Wanted",
-      description: "Jogo de corrida onde você desafia a polícia e sobe no ranking dos corredores mais procurados.",
-      price: "R$35",
-      image: "https://www.vgdb.com.br/gf/fotos/games/media_56781/need-for-speed-most-wanted-2005-----56781.jpg",
-    },
-    {
-      name: "Bully",
-      description: "Um jogo de mundo aberto da Rockstar onde você controla Jimmy, um estudante que precisa sobreviver em uma escola cheia de desafios.",
-      price: "R$30",
-      image: "https://i.pinimg.com/736x/dc/b6/e3/dcb6e3f8f29e9e4b08c31d8fc073080c.jpg",
-    },
-    {
-      name: "Devil May Cry 3",
-      description: "Jogo de ação frenética onde você joga como Dante, enfrentando hordas de demônios com estilo.",
-      price: "R$38",
-      image: "https://m.media-amazon.com/images/I/71R+Na4J2aL.jpg",
-    },
-    {
-      name: "Dragon Ball Z: Budokai Tenkaichi 3",
-      description: "O jogo definitivo de luta de Dragon Ball, com um grande elenco de personagens e batalhas intensas.",
-      price: "R$45",
-      image: "https://bdjogos.com.br/capas/12316-dragon-ball-z-budokai-tenkaichi-3-playstation-2-capa-1.jpg",
-    },
-  ];
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF4500" />
+        <Text style={styles.loadingText}>Carregando produtos...</Text>
+      </View>
+    );
+  }
 
   // Função para calcular a quantidade de colunas com base na largura da tela
   const getColumns = () => {
@@ -359,6 +324,16 @@ const styles = StyleSheet.create({
   cartIcon: {
     fontSize: 24,
     color: '#FFD700',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#FFD700',
+    fontFamily: 'PressStart2P_400Regular',
   },
 });
 

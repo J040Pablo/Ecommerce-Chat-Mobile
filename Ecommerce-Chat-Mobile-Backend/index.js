@@ -89,12 +89,13 @@ app.use('/api', UserRouter);
 app.use('/api', ProductRouter);
 app.use('/api', MessageRouter);
 
-// Conectar ao MongoDB
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB connected'))
-    .catch((err) => console.log('Error connecting to MongoDB: ', err));
+// MongoDB
+mongoose.connect('mongodb://localhost:27017/ecommerce', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+}).then(() => console.log('Conectado ao MongoDB'))
+  .catch((error) => console.error('Erro ao conectar ao MongoDB:', error));
 
-// Ouvir na porta definida no .env ou 3000 como fallback
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
