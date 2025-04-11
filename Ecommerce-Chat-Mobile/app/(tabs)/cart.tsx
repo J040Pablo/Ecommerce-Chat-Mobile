@@ -68,12 +68,17 @@ const Cart: React.FC = () => {
   };
 
   const finalizeOrder = async () => {
+    if (cartState.length === 0) {
+      Alert.alert('Erro', 'O carrinho está vazio.');
+      return;
+    }
+  
     try {
       const orderData = {
         items: cartState,
         total: cartState.reduce((sum, item) => sum + item.price, 0),
       };
-
+  
       const response = await fetch('http://192.168.1.71:3000/api/order', {
         method: 'POST',
         headers: {
@@ -81,9 +86,9 @@ const Cart: React.FC = () => {
         },
         body: JSON.stringify(orderData),
       });
-
+  
       const result = await response.json();
-
+  
       if (response.ok) {
         // Exibe a mensagem animada
         setShowSuccessMessage(true);
@@ -111,6 +116,7 @@ const Cart: React.FC = () => {
       Alert.alert('Erro', 'Ocorreu um erro ao finalizar o pedido.');
     }
   };
+  
 
   if (!fontsLoaded) {
     return null;
