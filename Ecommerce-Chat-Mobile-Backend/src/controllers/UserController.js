@@ -2,6 +2,7 @@ import { fileURLToPath } from 'url'; // Adicione esta linha
 import User from '../models/UserModel.js';
 import aiService from '../services/IaService.js';
 import path from 'path';
+import bcrypt from 'bcrypt';
 
 // Obtenha o diretório atual do arquivo
 const __filename = fileURLToPath(import.meta.url);
@@ -53,6 +54,26 @@ const UserController = {
             res.status(200).json(result.text());
         } catch (error) {
             res.status(500).json({ error: error.message });
+        }
+    },
+    login: async (req, res) => {
+        const { email, password } = req.body;
+
+        try {
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(401).json({ success: false, message: 'Usuário não encontrado.' });
+            }
+
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+
+            if (!isPasswordValid) {
+                return res.status(401).json({ success: false, message: 'Senha incorreta.' });
+            }
+
+            res.status(200).json({ success: true, message: 'Login realizado com sucesso.' });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro no servidor.' });
         }
     },
 };

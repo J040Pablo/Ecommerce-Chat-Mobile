@@ -1,10 +1,12 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import { useState } from 'react';
+import axios from 'axios';
 
 export default function Login() {
+  const SERVER_URL = 'http://192.168.1.71:3000'; // Substitua pelo IP correto do backend
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,6 +17,52 @@ export default function Login() {
   if (!fontsLoaded) {
     return null;
   }
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    return emailRegex.test(email);
+  };
+
+  const handleLogin = async () => {
+    if (!email.trim()) {
+        Alert.alert('Erro', 'Por favor, insira um email.');
+        return;
+    }
+    if (!isValidEmail(email)) {
+        Alert.alert('Erro', 'Por favor, insira um email válido.');
+        return;
+    }
+    if (!password.trim()) {
+        Alert.alert('Erro', 'Por favor, insira uma senha.');
+        return;
+    }
+
+    try {
+        console.log('Enviando dados para o backend:', { email, password });
+        const loginUrl = `${SERVER_URL}/api/login`;
+        const response = await axios.post(loginUrl, { email, password });
+
+        console.log('Resposta do backend:', response.data);
+        if (response.data.success) {
+            Alert.alert('Sucesso', 'Login realizado com sucesso!');
+            router.replace('/home');
+        } else {
+            Alert.alert('Erro', response.data.message || 'Credenciais inválidas.');
+        }
+    } catch (error) {
+        // Verifica se o erro é uma instância de AxiosError
+        if (axios.isAxiosError(error)) {
+            if (error.response && error.response.status === 401) {
+                Alert.alert('Erro', 'Login inválido.');
+            } else {
+                Alert.alert('Erro', 'Não foi possível fazer login. Tente novamente mais tarde.');
+            }
+        } else {
+            Alert.alert('Erro', 'Ocorreu um erro inesperado.');
+        }
+        // Removido o console.error para evitar exibir o erro no console
+    }
+  };
 
   return (
     <LinearGradient
@@ -30,7 +78,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => setEmail(text)}
             placeholder="Digite seu email"
             placeholderTextColor="#666"
             autoCapitalize="none"
@@ -42,14 +90,14 @@ export default function Login() {
           <TextInput
             style={styles.input}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => setPassword(text)}
             placeholder="Digite sua senha"
             placeholderTextColor="#666"
             secureTextEntry
           />
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => router.replace('/home')}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>ENTRAR</Text>
         </TouchableOpacity>
 
