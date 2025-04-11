@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import UserRouter from './src/routers/UserRouter.js';
 import ProductRouter from './src/routers/ProductRouter.js';
 import MessageRouter from './src/routers/MessageRouter.js';
+import OrderRouter from './src/routers/OrderRouter.js';
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import axios from 'axios';
@@ -88,6 +89,7 @@ app.use(cors());
 app.use('/api', UserRouter);
 app.use('/api', ProductRouter);
 app.use('/api', MessageRouter);
+app.use('/api', OrderRouter);
 
 // MongoDB
 mongoose.connect('mongodb://localhost:27017/ecommerce', {

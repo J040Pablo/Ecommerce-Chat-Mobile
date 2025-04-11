@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFonts, PressStart2P_400Regular } from '@expo-google-fonts/press-start-2p';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -57,11 +57,39 @@ const Cart: React.FC = () => {
 
   const clearCart = async () => {
     try {
-      await AsyncStorage.removeItem('cart');
-      setCartState([]);
-      console.log('Carrinho limpo');
+      setCartState([]); // Limpa o estado do carrinho
+      console.log('Carrinho limpo no estado.');
     } catch (error) {
       console.error('Erro ao limpar o carrinho:', error);
+    }
+  };
+
+  const finalizeOrder = async () => {
+    try {
+      const orderData = {
+        items: cartState,
+        total: cartState.reduce((sum, item) => sum + item.price, 0),
+      };
+
+      const response = await fetch('http://192.168.1.71:3000/api/order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Pedido finalizado com sucesso!');
+        clearCart(); // Limpa o estado do carrinho, mas não remove a funcionalidade de adicionar novos itens
+      } else {
+        Alert.alert('Erro', result.error || 'Não foi possível finalizar o pedido.');
+      }
+    } catch (error) {
+      console.error('Erro ao finalizar pedido:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao finalizar o pedido.');
     }
   };
 
@@ -101,8 +129,8 @@ const Cart: React.FC = () => {
         contentContainerStyle={styles.listContainer}
       />
       <Text style={styles.totalText}>Total: R${total.toFixed(2)}</Text>
-      <TouchableOpacity style={styles.button} onPress={() => console.log('Finalizar Compra')}>
-        <Text style={styles.buttonText}>Finalizar Compra</Text>
+      <TouchableOpacity style={styles.button} onPress={finalizeOrder}>
+        <Text style={styles.buttonText}>Finalizar Pedido</Text>
       </TouchableOpacity>
     </View>
   );
