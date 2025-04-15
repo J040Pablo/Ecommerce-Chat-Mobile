@@ -31,20 +31,6 @@ const Chat = () => {
       console.log('Conexão com o servidor WebSocket estabelecida!');
     };
 
-    ws.onmessage = ({ data }) => {
-      try {
-        const newMessage = JSON.parse(data);
-
-        // Verifica se a mensagem é de um usuário e não da IA
-        if (newMessage.sentBy !== 'IA') {
-          setChat((prevState) => ({
-            messages: [...prevState.messages, newMessage],
-          }));
-        }
-      } catch (error) {
-        console.error('Erro ao processar a mensagem recebida:', error);
-      }
-    };
 
     return () => {
       ws.close(); // Fecha o WebSocket ao desmontar o componente
